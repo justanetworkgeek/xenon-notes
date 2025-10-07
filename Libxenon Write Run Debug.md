@@ -6,11 +6,13 @@ These are the steps I follow to write, run, and effectively debug Libxenon appli
 
 Reading any stack traces that are displayed on the scary red screen is critical to successful debugging of custom apps. Taking a picture and reading the trace at the bottom of the page will help to understand exactly where a program failed. Breakpoints can also be inserted but this requires a hardware UART connected or other code written to handle the events. 
 
-A UART makes the stack traces easier to copy and paste and feed to readelf to pinpoint exact failures. Otherwise the telnet_console_init() function within console.h of libxenon works fine and can also be used to capture stack traces.
+A UART makes the stack traces easier to copy and paste and feed to readelf to pinpoint exact failures. Otherwise the telnet_console_init() function within console.h of libxenon works fine and can also be used to capture stack traces. 
 
 ### Telnet 
 
-Adding anywhere in the libxenon code `telnet_console_init()` where you are trying to debug (or before a main loop) will **redirect** console output to telnet. `network_init()` and `network_poll()` must have been called as well before the telnet console can be used. The console can be connected to on port 23/tcp. It does not really accept any commands, but parsing stdin can read sent characters from a connected client. 
+Adding anywhere in the libxenon code `telnet_console_init()` where you are trying to debug (or before a main loop) will **redirect** console output to telnet. `network_init()` and `network_poll()` must have been called as well before the telnet console can be used. The console can be connected to on port 23/tcp. It does not really accept any commands, but parsing stdin can read sent characters from a connected client. This is no-OS territory so all functionality must be implemented but having a simple telnet connection is very useful.
+
+Telnet console initializations do not carry through between libxenon programs. It must be re-initialized in each program.
 
 ### Readelf and friends
 
