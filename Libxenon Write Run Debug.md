@@ -1,0 +1,36 @@
+# Libxenon Write Run Debug
+
+These are the steps I follow to write, run, and effectively debug Libxenon applications. I write this to hopefully empower would be 360 homebrew developers in 2025 some tips I have gathered over the years.
+
+## Stack traces
+
+Reading any stack traces that are displayed on the scary red screen is critical to successful debugging of custom apps. Taking a picture and reading the trace at the bottom of the page will help to understand exactly where a program failed. Breakpoints can also be inserted but this requires a hardware UART connected or other code written to handle the events. 
+
+A UART makes the stack traces easier to copy and paste and feed to readelf to pinpoint exact failures. Otherwise the telnet_console_init() function within console.h of libxenon works fine and can also be used to capture stack traces.
+
+### Telnet 
+
+Adding anywhere in the libxenon code `telnet_console_init()` where you are trying to debug (or before a main loop) will **redirect** console output to telnet. `network_init()` and `network_poll()` must have been called as well before the telnet console can be used. The console can be connected to on port 23/tcp. It does not really accept any commands, but parsing stdin can read sent characters from a connected client. 
+
+### Readelf
+
+## TFTP Booting
+
+XeLL has supported booting files via TFTP forever. This is how I use it, roughly.
+
+- On any Linux disto install a tftp server. I use tftpd-hpa.
+- Whatever server is chosen make sure to set up a directory `/tftpboot` which is owned by nobody:nogroup and also chmod 7777 (r/w/x by anyone from anywhere).
+- Port 69 must be open on the server's firewall and that firewall must be reloaded.
+- XeLL supports some static filenames. Put any of them in /tftpboot containing any type of binary executable. 
+- If the chosen tftp server supports any type of insecure mode, enable it.
+- tftp server logs will help - via journald or other means as the server os supports.
+
+
+Makefiles can have rules added to support building and cleaning to TFTP server directory:
+```
+run: $(BUILD) $(OUTPUT).elf32
+	cp $(OUTPUT).elf32 $(TFTPROOT)
+	$(PREFIX)strip $(OUTPUT).elf32
+	gzip -n9 -f $(OUTPUT).elf32 -S.gz
+```
+`mv /tftpboot/FILENAME /tftpboot/xenon` for XeLL to recognize it. Some other static filenames can be chosen too. 
