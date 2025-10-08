@@ -45,3 +45,4 @@ run: $(BUILD) $(OUTPUT).elf32
 	gzip -n9 -f $(OUTPUT).elf32 -S.gz
 ```
 Some other static filenames can be chosen too but the first one found will be used.
+Setting this across all libxenon project Makefiles will ensure always that the latest file on tftp server named `xenon` is ready to test in it's latest version.
